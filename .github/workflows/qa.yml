@@ -1,0 +1,44 @@
+name: QA
+
+on: push
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+      - name: Set up Node 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install required dependency for node
+        run: |
+          npm install --save-dev prettier@1.18.x
+      - name: Run Prettier
+        run: |
+          npx prettier --check "**/*.{html,js,json,md,yaml,yml}"
+  rubocop:
+    name: Rubocop
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+      - name: Setup Rubocop
+        run: bundle install
+      - name: Rubocop Report
+        run: rubocop --color
+  brakeman:
+    name: Brakeman
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+      - name: Setup Brakeman
+        run: bundle install
+      - name: Brakeman Report
+        run: brakeman
