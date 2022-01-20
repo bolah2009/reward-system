@@ -1,5 +1,3 @@
-require 'csv'
-
 module RewardSystemService
   # 2018-06-12 09:41 A recommends B
   # 2018-06-14 09:41 B accepts
@@ -10,6 +8,8 @@ module RewardSystemService
   # 2018-06-25 09:41 D accepts
 
   class Node
+    attr_accessor :points
+
     def initialize(invitee_name, inviter_node = nil)
       @name = invitee_name
       @inviter = inviter_node
@@ -35,7 +35,7 @@ module RewardSystemService
     end
 
     def parent
-      return inviter if @accepts_invite
+      return @inviter if @accepts_invite
 
       nil
     end
@@ -61,14 +61,14 @@ module RewardSystemService
       # dont accept invite for invitation that does not exist
       return unless node_exists?(invitee_name)
 
-      invitee_node = store[invitee_name]
+      invitee_node = @store[invitee_name]
       invitee_node.accept_invite
 
       assign_score invitee_node
     end
 
     def node_exists?(node_name)
-      store[node_name].present?
+      @store[node_name].present?
     end
 
     def assign_score(node)
@@ -85,15 +85,21 @@ module RewardSystemService
       0.5**level
     end
 
+    def scores
+      @store
+        .transform_values(&:points)
+        .reject { |_key, val| val <= 0 }
+    end
+
     def find_or_create_inviter_node(inviter_name)
-      return store[inviter_name] if node_exists?(inviter_name)
+      return @store[inviter_name] if node_exists?(inviter_name)
 
       create_node(inviter_name)
     end
 
     def create_node(node_name, parent = nil)
       node = Node.new(node_name, parent)
-      store[node_name] = node
+      @store[node_name] = node
       node
     end
   end
@@ -154,6 +160,29 @@ module RewardSystemService
         clean_data[:accepter] = new_data['accepter']
       end
       clean_data
+    end
+  end
+
+  class Calculator
+    def initialize(data)
+      @data = ParseData.new(data).formatted_data
+      @tree = Tree.new
+      populate_data
+    end
+
+    def populate_data
+      @data.each do |d|
+        case d[:action]
+        when :recommend
+          @tree.add_node(d[:invitee], d[:inviter])
+        when :accept
+          @tree.accept_invite(d[:accepter])
+        end
+      end
+    end
+
+    def generate_scores
+      @tree.scores
     end
   end
 end
