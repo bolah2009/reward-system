@@ -1,12 +1,4 @@
 module RewardSystemService
-  # 2018-06-12 09:41 A recommends B
-  # 2018-06-14 09:41 B accepts
-  # 2018-06-16 09:41 B recommends C
-  # 2018-06-17 09:41 C accepts
-  # 2018-06-19 09:41 C recommends D
-  # 2018-06-23 09:41 B recommends D
-  # 2018-06-25 09:41 D accepts
-
   class Node
     attr_accessor :points
 
@@ -27,23 +19,11 @@ module RewardSystemService
     def accept_invite
       @accepts_invite = true
     end
-
-    private
-
-    def node_depth
-      node = self
-      while node.present?
-        @node_depth += 1
-        node = node.parent
-      end
-    end
-
-    def add_child(node)
-      node.inviter = self
-    end
   end
 
   class Tree
+    SCORE_FACTOR = 0.5
+
     def initialize
       @store = {}
       @root_node = nil
@@ -92,7 +72,7 @@ module RewardSystemService
     end
 
     def score(level)
-      0.5**level
+      SCORE_FACTOR**level
     end
 
     def find_or_create_inviter_node(inviter_name)
