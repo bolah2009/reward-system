@@ -18,13 +18,17 @@ module RewardSystemService
       @node_depth = 0
     end
 
-    def add_child(node)
-      node.inviter = self
+    def parent
+      return @inviter if @accepts_invite
+
+      nil
     end
 
     def accept_invite
       @accepts_invite = true
     end
+
+    private
 
     def node_depth
       node = self
@@ -34,10 +38,8 @@ module RewardSystemService
       end
     end
 
-    def parent
-      return @inviter if @accepts_invite
-
-      nil
+    def add_child(node)
+      node.inviter = self
     end
   end
 
@@ -67,6 +69,14 @@ module RewardSystemService
       assign_score invitee_node
     end
 
+    def scores
+      @store
+        .transform_values(&:points)
+        .reject { |_key, val| val <= 0 }
+    end
+
+    private
+
     def node_exists?(node_name)
       @store[node_name].present?
     end
@@ -83,12 +93,6 @@ module RewardSystemService
 
     def score(level)
       0.5**level
-    end
-
-    def scores
-      @store
-        .transform_values(&:points)
-        .reject { |_key, val| val <= 0 }
     end
 
     def find_or_create_inviter_node(inviter_name)
@@ -128,6 +132,8 @@ module RewardSystemService
       @formatted_data = []
       transform
     end
+
+    private
 
     def transform
       @data.each { |d| add(d) }
@@ -170,6 +176,12 @@ module RewardSystemService
       populate_data
     end
 
+    def generate_scores
+      @tree.scores
+    end
+
+    private
+
     def populate_data
       @data.each do |d|
         case d[:action]
@@ -179,10 +191,6 @@ module RewardSystemService
           @tree.accept_invite(d[:accepter])
         end
       end
-    end
-
-    def generate_scores
-      @tree.scores
     end
   end
 end
