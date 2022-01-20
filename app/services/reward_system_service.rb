@@ -1,3 +1,5 @@
+require 'csv'
+
 module RewardSystemService
   # 2018-06-12 09:41 A recommends B
   # 2018-06-14 09:41 B accepts
@@ -93,6 +95,65 @@ module RewardSystemService
       node = Node.new(node_name, parent)
       store[node_name] = node
       node
+    end
+  end
+
+  class ParseData
+    LINE_PATTERN = /
+      \A(?:
+        (?<date>\d{4}-\d{2}-\d{2})                                 (?# date)
+        \s
+        (?<time>\d{2}:\d{2})                                       (?# time)
+        \s
+        (?:(?:(?<inviter>\w+) \s recommends \s (?<invitee>\w+))
+        |
+        (?:(?<accepter>\w+) \s accepts))
+      )\z
+    /xi
+
+    PARSE_OPTIONS = {
+      skip_blanks: true
+    }.freeze
+
+    attr_reader :formatted_data
+
+    def initialize(data)
+      @data = data.split(/(?:\r?\n)+/).map(&:strip)
+      @formatted_data = []
+      transform
+    end
+
+    def transform
+      @data.each { |d| add(d) }
+    end
+
+    def add(raw_data)
+      clean_data = format(raw_data)
+      return if clean_data.blank?
+
+      formatted_data
+        .push(clean_data)
+        .sort_by! { |el| el[:datetime] }
+    end
+
+    # Formats each string line for easy access, for example:
+    # { datetime: 'Tue, 12 Jun 2018 09:41:00 +0000', action: :recommend, inviter: 'A', invitee: 'B' }
+    # { datetime: 'Thu, 14 Jun 2018 09:41:00 +0000', action: :accept, accepter: 'B' }
+    def format(raw_data)
+      new_data = LINE_PATTERN.match(raw_data)&.named_captures
+      return if new_data.blank?
+
+      datetime = "#{new_data['date']} #{new_data['time']}"
+
+      clean_data = { datetime: DateTime.parse(datetime) }
+
+      if new_data['accepter'].blank?
+        clean_data.merge!({ action: :recommend, inviter: new_data['inviter'], invitee: new_data['invitee'] })
+      else
+        clean_data[:action] = :accept
+        clean_data[:accepter] = new_data['accepter']
+      end
+      clean_data
     end
   end
 end
