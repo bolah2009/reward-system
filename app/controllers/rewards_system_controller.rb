@@ -1,6 +1,6 @@
 class RewardsSystemController < ApplicationController
   def reward_points
-    service = RewardSystemService::Main.new data
+    service = RewardSystem::Main.new data
     return render json: { errors: service.errors }, status: :unprocessable_entity if service.invalid?
 
     render json: service.generate_scores, status: :ok
