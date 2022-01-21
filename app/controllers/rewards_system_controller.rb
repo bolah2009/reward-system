@@ -1,9 +1,9 @@
 class RewardsSystemController < ApplicationController
   def reward_points
-    Rails.logger.info request.raw_post.inspect.to_s
-    points = RewardSystemService::Calculator.new(data).generate_scores
+    service = RewardSystemService::Main.new data
+    return render json: { errors: service.errors }, status: :unprocessable_entity if service.invalid?
 
-    render json: points, status: :ok
+    render json: service.generate_scores, status: :ok
   end
 
   def data

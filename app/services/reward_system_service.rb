@@ -180,4 +180,104 @@ module RewardSystemService
       end
     end
   end
+
+
+  class Validator
+    include ActiveModel::Model
+
+    ACTIONS = { accept: :accept, recommend: :recommend }.freeze
+
+    attr_accessor :data
+
+    validates :data, presence: true
+
+    validate :check_data
+
+    def initialize(raw_data)
+      @data = raw_data
+      @parsed_data = ParseData.new(data)
+    end
+
+    private
+
+    def check_data
+      return if errors.present?
+
+      validate_each_line
+    end
+
+    def validate_each_line
+      @parsed_data.cleaned_data.each_with_index do |row, index|
+        line = index + 1 # index starts with 0
+        matched_data = @parsed_data.matched_data(row)
+        validate_format(matched_data, line)
+        validate_date(matched_data, line)
+        validate_actions(row, line)
+      end
+    end
+
+    def validate_format(row, line)
+      return if row.present?
+
+      errors.add(:format, "Invalid invitation format in line #{line}")
+      throw :abort
+    end
+
+    def validate_date(row, line)
+      DateTime.parse(row['datetime'])
+    rescue Date::Error
+      errors.add(:date, "Invalid date format in line #{line}")
+      throw :abort
+    end
+
+    # { datetime: 'Tue, 12 Jun 2018 09:41:00 +0000', action: :recommend, inviter: 'A', invitee: 'B' }
+    # { datetime: 'Thu, 14 Jun 2018 09:41:00 +0000', action: :accept, accepter: 'B' }
+    def validate_actions(row, line)
+      formatted_data = @parsed_data.format(row)
+
+      if formatted_data.present? && formatted_data[:action] == ACTIONS[:recommend]
+        return validate_recommendation(formatted_data,
+                                       line)
+      end
+
+      if formatted_data.present? && formatted_data[:action] == ACTIONS[:accept]
+        return validate_acceptance(formatted_data,
+                                   line)
+      end
+
+      errors.add(:action, "Invitation should have a valid action, e.g. #{ACTIONS.values.first} at line #{line}")
+      throw :abort
+    end
+
+    def validate_recommendation(formatted_data, line)
+      if formatted_data[:inviter].blank?
+        errors.add(:inviter, "Invitation should have a valid inviter at line #{line}")
+        throw :abort
+      end
+
+      return if formatted_data[:invitee].present?
+
+      errors.add(:invitee, "Invitation should have a valid invitee at line #{line}")
+      throw :abort
+    end
+
+    def validate_acceptance(formatted_data, line)
+      return if formatted_data[:accepter].present?
+
+      errors.add(:accepter, "Invitation should have a valid accepter at line #{line}")
+      throw :abort
+    end
+  end
+
+  class Main
+    attr_reader :validator, :errors, :calculator
+
+    delegate :errors, :invalid?, to: :validator
+    delegate :generate_scores, to: :calculator
+
+    def initialize(data)
+      @validator = Validator.new(data)
+      @calculator = Calculator.new(data)
+    end
+  end
 end
