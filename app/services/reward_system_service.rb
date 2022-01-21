@@ -91,9 +91,7 @@ module RewardSystemService
   class ParseData
     LINE_PATTERN = /
       \A(?:
-        (?<date>\d{4}-\d{2}-\d{2})                                 (?# date)
-        \s
-        (?<time>\d{2}:\d{2})                                       (?# time)
+        (?<datetime>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})     (?# datetime)
         \s
         (?:(?:(?<inviter>\w+) \s recommends \s (?<invitee>\w+))
         |
@@ -105,39 +103,30 @@ module RewardSystemService
       skip_blanks: true
     }.freeze
 
-    attr_reader :formatted_data
+    attr_reader :cleaned_data
 
     def initialize(data)
-      @data = data.split(/(?:\r?\n)+/).map(&:strip)
+      @cleaned_data = clean(data)
       @formatted_data = []
-      transform
     end
-
-    private
 
     def transform
-      @data.each { |d| add(d) }
+      cleaned_data.each { |d| add(d) }
+      @formatted_data
     end
 
-    def add(raw_data)
-      clean_data = format(raw_data)
-      return if clean_data.blank?
-
-      formatted_data
-        .push(clean_data)
-        .sort_by! { |el| el[:datetime] }
+    def matched_data(raw_data)
+      LINE_PATTERN.match(raw_data)&.named_captures
     end
 
     # Formats each string line for easy access, for example:
     # { datetime: 'Tue, 12 Jun 2018 09:41:00 +0000', action: :recommend, inviter: 'A', invitee: 'B' }
     # { datetime: 'Thu, 14 Jun 2018 09:41:00 +0000', action: :accept, accepter: 'B' }
     def format(raw_data)
-      new_data = LINE_PATTERN.match(raw_data)&.named_captures
+      new_data = matched_data(raw_data)
       return if new_data.blank?
 
-      datetime = "#{new_data['date']} #{new_data['time']}"
-
-      clean_data = { datetime: DateTime.parse(datetime) }
+      clean_data = { datetime: DateTime.parse(new_data['datetime']) }
 
       if new_data['accepter'].blank?
         clean_data.merge!({ action: :recommend, inviter: new_data['inviter'], invitee: new_data['invitee'] })
@@ -147,28 +136,46 @@ module RewardSystemService
       end
       clean_data
     end
+
+    private
+
+    def clean(data)
+      data
+        .strip
+        .split(/(?:\r?\n)+/) # some OS such as DOS and Windows uses \r\n
+        .map(&:strip)
+    end
+
+    def add(raw_data)
+      clean_data = format(raw_data)
+      return if clean_data.blank?
+
+      @formatted_data
+        .push(clean_data)
+        .sort_by! { |el| el[:datetime] }
+    end
   end
 
   class Calculator
     def initialize(data)
-      @data = ParseData.new(data).formatted_data
+      @data = ParseData.new(data)
       @tree = Tree.new
-      populate_data
     end
 
     def generate_scores
+      populate_data
       @tree.scores
     end
 
     private
 
     def populate_data
-      @data.each do |d|
-        case d[:action]
+      @data.transform.each do |row|
+        case row[:action]
         when :recommend
-          @tree.add_node(d[:invitee], d[:inviter])
+          @tree.add_node(row[:invitee], row[:inviter])
         when :accept
-          @tree.accept_invite(d[:accepter])
+          @tree.accept_invite(row[:accepter])
         end
       end
     end
