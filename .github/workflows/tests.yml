@@ -1,0 +1,15 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  rspec:
+    name: RSpec
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+      - name: Setup RSpec
+        run: bundle install
+      - name: RSpec Report
+        run: rspec --force-color --format documentation
