@@ -7,6 +7,9 @@ class RewardsSystemController < ApplicationController
   end
 
   def data
+    return params[:text_input_data] if params[:text_input_data].present?
+    return params[:file_input_data].read if params[:file_input_data].present?
+
     request.raw_post
   end
 end
