@@ -1,0 +1,26 @@
+2020-02-09 02:21 A recommends B
+2020-03-19 05:51 B accepts
+2020-04-09 02:21 B recommends C
+2020-04-09 02:21 B recommends D
+2020-04-09 02:21 B recommends E
+2020-05-19 05:51 C accepts
+2020-05-19 05:51 D accepts
+2020-05-19 05:51 E accepts
+2020-06-09 02:21 C recommends F
+2020-06-09 02:21 C recommends G
+2020-06-09 02:21 C recommends H
+2020-07-19 05:51 F accepts
+2020-07-19 05:51 G accepts
+2020-07-19 05:51 H accepts
+2020-08-09 02:21 D recommends I
+2020-08-09 02:21 D recommends J
+2020-08-09 02:21 D recommends K
+2020-09-19 05:51 I accepts
+2020-09-19 05:51 J accepts
+2020-09-19 05:51 K accepts
+2020-10-09 02:21 E recommends L
+2020-10-09 02:21 E recommends M
+2020-10-09 02:21 E recommends N
+2020-11-19 05:51 L accepts
+2020-11-19 05:51 M accepts
+2020-11-19 05:51 N accepts
