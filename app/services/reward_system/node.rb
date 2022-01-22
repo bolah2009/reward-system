@@ -16,6 +16,14 @@ module RewardSystem
       nil
     end
 
+    def remove_invite
+      @inviter = nil
+    end
+
+    def accepted_invite?
+      @accepts_invite
+    end
+
     def accept_invite
       @accepts_invite = true
     end

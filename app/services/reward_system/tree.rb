@@ -12,6 +12,12 @@ module RewardSystem
       # dont accept any other invite except from the first invite
       return if node_exists? invitee_name
 
+      # remove invites that are not accepted when user recommends another user
+      if node_exists?(inviter_name)
+        inviter_node = @store[inviter_name]
+        inviter_node.remove_invite unless inviter_node.accepted_invite?
+      end
+
       inviter_node = find_or_create_inviter_node(inviter_name)
       create_node(invitee_name, inviter_node)
     end
@@ -22,8 +28,10 @@ module RewardSystem
       return unless node_exists?(invitee_name)
 
       invitee_node = @store[invitee_name]
-      invitee_node.accept_invite
+      # dont accept invite more than once
+      return if invitee_node.accepted_invite?
 
+      invitee_node.accept_invite
       assign_score invitee_node
     end
 
