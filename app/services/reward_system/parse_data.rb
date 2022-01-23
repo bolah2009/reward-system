@@ -53,6 +53,7 @@ module RewardSystem
     def clean(data)
       data
         .strip
+        .upcase
         .split(/(?:\r?\n)+/) # some OS such as DOS and Windows uses \r\n
         .map(&:strip)
     end

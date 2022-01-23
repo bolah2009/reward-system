@@ -121,6 +121,18 @@ RSpec.describe 'RewardsSystemController', type: :request do
       end
     end
 
+    context 'when params use different character case for same user or action' do
+      let(:filename) { 'case_insensitive.txt' }
+      let(:params) { { file_input_data: file_input_data } }
+      let(:score) { { 'AHMED' => 1.9375, 'BOLA' => 1.875, 'CARL' => 1.75, 'DARE' => 1.5, 'EMMA' => 1.0 } }
+
+      it_behaves_like 'responding with a successful response'
+
+      it 'only first invitation counts' do
+        expect(json_response).to eq score
+      end
+    end
+
     context 'with joined tree-like network (single person with multiple recommendations)' do
       let(:filename) { 'joined_network.txt' }
       let(:params) { { file_input_data: file_input_data } }
