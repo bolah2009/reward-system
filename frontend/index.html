@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reward System</title>
+  </head>
+
+  <body>
+    <main>
+      <h1>Reward System Service</h1>
+      <div class="text-input-request">
+        <form
+          action="https://reward-system-service.fly.dev/rewards"
+          method="post"
+          id="text-input-form"
+          target="_blank"
+        >
+          <div>
+            <label class="label" for="text_input_data"
+              >Enter recommendations of customer (See below for rules of the input format)</label
+            >
+            <textarea
+              rows="10"
+              class="input"
+              id="text_input_data"
+              name="text_input_data"
+              required
+              placeholder="Enter recommendations data"
+            ></textarea>
+          </div>
+          <button
+            class="form-submit"
+            type="submit"
+            id="text-input-form-submit"
+            name="text-input-submit"
+          >
+            submit
+          </button>
+        </form>
+      </div>
+      <h2>OR</h2>
+      <div class="file-input-request">
+        <form
+          action="https://reward-system-service.fly.dev/rewards"
+          method="post"
+          id="file-input-form"
+          target="_blank"
+          enctype="multipart/form-data"
+        >
+          <div>
+            <label class="label" for="file_input_data"
+              >Upload recommendations of customer (See below for rules of the input format)</label
+            >
+            <input
+              class="input file-upload"
+              type="file"
+              id="file_input_data"
+              name="file_input_data"
+              required
+              accept="text/plain"
+              placeholder="Upload recommendations data"
+            />
+          </div>
+          <button
+            class="form-submit"
+            type="submit"
+            id="file-input-form-submit"
+            name="file-input-submit"
+          >
+            submit
+          </button>
+        </form>
+      </div>
+      <section class="input-guide">
+        <h2>Input Guide</h2>
+        <p>
+          You can either input your data directly or upload a text file, where each line denotes a
+          different instruction
+        </p>
+        <p>The following are the rules for a valid input for each line</p>
+        <ol>
+          <li>
+            Each line should be in the format:
+            <ul>
+              <li>YYYY-MM-DD HH:MM USER_ONE recommends USER_TWO</li>
+              <li>YYYY-MM-DD HH:MM USER_ONE accepts</li>
+            </ul>
+            <p>
+              where YYYY-MM-DD is the year-month-day format and HH:MM is a 24-hour format, USER_ONE
+              and USER_TWO should be a word only character with no space or special characters
+            </p>
+          </li>
+          <li>
+            All inputs are case insensitive, this means that user "A" is the same as user "a",
+            "accepts" is the same as "Accepts" and "ACCEPTS", etc
+          </li>
+        </ol>
+        <p>
+          See more rules in the
+          <a
+            href="https://github.com/bolah2009/reward-system/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            >doc page</a
+          >
+        </p>
+      </section>
+
+      <style>
+        textarea,
+        input,
+        button,
+        body {
+          margin: 0;
+          padding: 0;
+          border: none;
+        }
+
+        textarea,
+        label,
+        input {
+          display: block;
+        }
+
+        main {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          padding: 0 8px;
+          text-align: center;
+        }
+
+        .text-input-request {
+          margin-bottom: 16px;
+        }
+
+        .label {
+          font-weight: bold;
+          width: 100%;
+        }
+
+        .input {
+          margin-top: 12px;
+          width: 100%;
+          border: 1px solid black;
+          border-radius: 4px;
+        }
+
+        .input:focus {
+          outline: #dddddd;
+        }
+
+        .form-submit {
+          background-color: #ffffff;
+          height: 30px;
+          margin-top: 4px;
+          border-radius: 4px;
+          border: 1px solid black;
+          cursor: pointer;
+          transition: all 200ms linear;
+          width: 100%;
+        }
+
+        .form-submit:hover {
+          background-color: #dddddd;
+          transition: all 200ms linear;
+        }
+
+        h2 {
+          text-align: center;
+        }
+
+        .file-upload {
+          width: 100%;
+          height: 24px;
+        }
+
+        .input-guide {
+          text-align: left;
+          width: 100%;
+        }
+
+        @media screen and (min-width: 768px) {
+          main {
+            text-align: center;
+          }
+
+          .form-submit,
+          .input,
+          .input-guide {
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+          }
+        }
+      </style>
+    </main>
+  </body>
+</html>
